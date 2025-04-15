@@ -1,0 +1,201 @@
+/* Reset básico para una mayor consistencia entre navegadores */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Estilos globales */
+body {
+  background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Contenedor principal de la app */
+.App {
+  width: 100%;
+  max-width: 600px;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.App h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #2f3e46;
+}
+
+/* Estilo para contenedores de Login y Register */
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  background: #ffffff;
+  padding: 30px;
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #2f3e46;
+}
+
+/* Estilos de formulario */
+.login-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  padding: 12px 15px;
+  border: 1px solid #ccd6dd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.login-container input[type="text"]:focus,
+.login-container input[type="password"]:focus {
+  border-color: #1d3557;
+  outline: none;
+}
+
+/* Botones generales */
+button{
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  background-color: #457b9d;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+button.done-btn{
+  background-color: #457b9d
+}
+button.add-btn{
+  background-color: green
+}
+
+button.add-btn:hover{
+  background-color: darkgreen;
+}
+button.delete-btn{
+  background-color: rgb(179, 4, 4)
+}
+button:hover,
+.done-btn:hover {
+  background-color: #1d3557;
+}
+button.delete-btn:hover{
+  background-color: darkred
+}
+
+/* Estilo para enlaces dentro de contenedores */
+.login-container p {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.login-container p a {
+  color: #457b9d;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-container p a:hover {
+  text-decoration: underline;
+}
+
+/* Mensajes de error */
+.error-message {
+  background-color: #ffdddd;
+  border: 1px solid #ff5c5c;
+  color: #a70000;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 15px;
+}
+
+/* Sección de tareas */
+.add-task {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.add-task input[type="text"] {
+  flex: 1;
+  padding: 12px 15px;
+  border: 1px solid #ccd6dd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.add-task input[type="text"]:focus {
+  border-color: #1d3557;
+  outline: none;
+}
+
+/* Lista de tareas */
+ul {
+  list-style: none;
+}
+
+ul li {
+  background-color: #f8f9fa;
+  margin-bottom: 10px;
+  padding: 12px 15px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.3s ease;
+}
+
+ul li:hover {
+  background-color: #e9ecef;
+}
+
+ul li span {
+  flex: 1;
+  cursor: pointer;
+}
+
+ul li button {
+  margin-left: 10px;
+  font-size: 0.9rem;
+}
+
+/* Ajuste para dispositivos móviles */
+@media (max-width: 480px) {
+  .App,
+  .login-container {
+    padding: 20px;
+  }
+
+  .login-container h2 {
+    font-size: 1.6rem;
+  }
+
+  .App h1 {
+    font-size: 1.8rem;
+  }
+}

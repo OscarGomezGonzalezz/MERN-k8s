@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+data:
+  mongo-url: mongo-service #instead of dynamic ips, we can assign it to its service
+  node-url: node-service
