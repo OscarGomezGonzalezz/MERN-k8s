@@ -16,9 +16,9 @@ spec:
     spec:
       containers:
       - name: react-container
-        image: oscargomezgonzalezz/react:1.0.3
+        image: oscargomezgonzalezz/react:conApi
         ports:
-        - containerPort: 3000
+        - containerPort: 80
         env:
         - name: BACKEND_URL
           valueFrom:

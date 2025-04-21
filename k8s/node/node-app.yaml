@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: node-container
-        image: oscargomezgonzalezz/node:1.0.2
+        image: oscargomezgonzalezz/node:sinApi
         ports:
         - containerPort: 3500
         env:

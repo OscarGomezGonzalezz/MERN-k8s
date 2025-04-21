@@ -1,9 +1,8 @@
-// const service = process.env.BACKEND_URL;
-// const fullUri = `http://${service}:3500/api/tasks`;
+const baseUri = 'http://node-service:3500/tasks';
 
 export const getTasks = async (token) => {
   try {
-    const response = await fetch('/api/tasks/', {
+    const response = await fetch('/api/tasks', {
       headers: {
         'Content-Type': 'application/json',
         Authorization: token,
@@ -22,7 +21,7 @@ export const getTasks = async (token) => {
 
 export const createTask = async (task, token) => {
   try {
-    const response = await fetch('/api/tasks/', {
+    const response = await fetch('/api/tasks', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

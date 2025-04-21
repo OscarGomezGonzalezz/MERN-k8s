@@ -1,7 +1,13 @@
 
 
 //const service = process.env.BACKEND_URL;
-//const fullUri = `http://${service}:3500/api/auth`;
+const baseUri = 'http://node-service:3500/auth';
+//IMPORTANT: BROWSER CAN NOT RECOGNIZE THIS ROUTE AS NODE SERVICE IS ONLY INSIDE THE CLUSTER. I WOULD
+// HAVE TO MAKE NODE SERVER ACCESSIBLE FROM LOCALHOST AND THEN 
+//baseUri = 'http://localhost:nodeport/auth'
+//BUT AS THIS IS NOT REALISTIC FOR PRODUCTION, WE WILL HAVE TO APPLY AN INGRESS CONTROLLER
+
+//cambiar api por la url de verdad, ya que api/ no es traducido por el nginx
 
 export const registerUser = async (username, password) => {
   try {
@@ -26,7 +32,7 @@ export const registerUser = async (username, password) => {
 
 export const loginUser = async (username, password) => {
   try {
-    const response = await fetch('/api/auth/register', {
+    const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
