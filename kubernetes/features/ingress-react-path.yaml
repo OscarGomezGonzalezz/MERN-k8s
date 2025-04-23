@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: react-path
-  # we have to create a different ingress file since react supports
+  # we have to create a different ingress file(although its more expensive) since react supports
   # rewriting and routing in other way(must be direct routing, $2 not allowed)
 spec:
   ingressClassName: nginx

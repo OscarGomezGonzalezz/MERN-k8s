@@ -95,12 +95,12 @@ b. kubectl apply -f mongo-config.yaml
 c. kubectl apply -f mongo/
 d. kubectl apply -f node/ 
 
-Now we have to export that service to our machine for testing it:
-- minikube service node-service 
 
 After changing smth: 
 - kubectl logs -l app=node-server
 - kubectl delete configmap --all y asi con el resto
+
+### /kubernetes/README.md for more information 
 
 ## TLS/HTTPS To Keycloak ##
 ### Certf x.509 for HTTPS
