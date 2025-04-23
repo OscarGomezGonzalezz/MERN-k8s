@@ -1,5 +1,7 @@
 # Introduction to NGINX Ingress Controller
 
+## (BASED ON DEVOPSGUY)
+
 ## NGINX Ingress Controller 
 
 We'll start with the documentation as always </br>
@@ -81,7 +83,7 @@ It's important to understand that Ingress runs on two ports `80` and `443` </br>
 NGINX Ingress creates a fake certificate which is served for default `HTTPS` traffic on port `443`. </br>
 If you look in the browser you will notice the name of the certificate `Common Name (CN)	Kubernetes Ingress Controller Fake Certificate` 
 
-## Features
+## Base Features (same for MERN App)
 
 Now before we take a look at the features we'll need two web applications that we can use as our test harness, `service-a` and `service-b` </br>
 
@@ -140,6 +142,12 @@ spec:
 ```
 
 <i>Note: we don't own public domain `public.my-services.com` so we're using a `/etc/hosts` file</i>
+
+```
+127.0.0.1       public.service-a.com
+127.0.0.1       public.service-b.com
+127.0.0.1       public.my-services.com
+```
 
 Deploy our ingresses:
 
