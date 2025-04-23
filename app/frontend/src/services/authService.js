@@ -1,7 +1,5 @@
 
 
-//const service = process.env.BACKEND_URL;
-const baseUri = 'http://node-service:3500/auth';
 //IMPORTANT: BROWSER CAN NOT RECOGNIZE THIS ROUTE AS NODE SERVICE IS ONLY INSIDE THE CLUSTER. I WOULD
 // HAVE TO MAKE NODE SERVER ACCESSIBLE FROM LOCALHOST AND THEN 
 //baseUri = 'http://localhost:nodeport/auth'
