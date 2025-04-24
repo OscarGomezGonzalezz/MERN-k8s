@@ -1,7 +1,7 @@
 # Introduction to NGINX Ingress Controller
 
 ## (BASED ON DEVOPSGUY)
-![Kubernetes Ingress Architecture](./Architecture.jpg)
+![Kubernetes Ingress Architecture](./assets/Architecture.jpg)
 ## NGINX Ingress Controller 
 
 We'll start with the documentation as always </br>
