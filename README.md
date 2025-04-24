@@ -1,170 +1,364 @@
-# TODO List App
+# Introduction to NGINX Ingress Controller
 
-## Index
+## (BASED ON DEVOPSGUY)
+![Kubernetes Ingress Architecture](./Architecture.jpg)
+## NGINX Ingress Controller 
 
-- [Description](#description)
-- [Task 1: Local development with MongoDB and React](#task-1-local-development-with-mongodb-and-react)
-- [Task 2: Migrating to docker-compose, nginx and HTTPS setup](#task-2-migrating-to-docker-compose-nginx-and-https-setup)
-  - [Development](#development)
-  - [Production](#production)
-  - [Kubernetes](#kubernetes)
-  - [TLS/HTTPS To Keycloak](#tlshttps-to-keycloak)
+We'll start with the documentation as always </br>
+You can find the [Kubernetes NGINX documentation here](https://kubernetes.github.io/ingress-nginx/) </br>
 
----
+First thing we do is check the compatibility matrix to ensure we are deploying a compatible version of NGINX Ingress on our Kubernetes cluster </br>
 
-## Description
+The Documentation also has a link to the [GitHub Repo](https://github.com/kubernetes/ingress-nginx/) which has a compatibility matrix </br>
 
-TODO List App (MERN) with session management. Built using React for the frontend and Node.js for the backend with MongoDB. This guide covers local development, containerization with Docker, Kubernetes deployment, and HTTPS setup via Keycloak.
+### Get the installation YAML
 
----
+The controller ships as a `helm` chart, so we can grab version `v1.5.1` as per the compatibility
+matrix. </br>
 
-## Task 1: Local development with mongodb and react##
+From our container we can do this:
 
-For running mongoDB in the cloud (mongoDB Atlas):
-1. Create a cluster
-2. create user and password(registered in the .env file)
-3. choose the driver connection 
+```
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm search repo ingress-nginx --versions
+```
 
-But as we have to run the database locally:
-1. Install mongoDB
-2. brew start mongodb-community
-3. For checking the connection in shell: mongosh "mongodb+srv://clusterxxxxxx" --apiVersion 1 --username username
+From the app version we select the version that matches the compatibility matrix. </br>
 
-IMPORTANT: WHEN TESTING IT WITH POSTMAN:
-Authorization: {token} <--- WITHOUT ADDING "Token" OR "Bearer" before the token itself
+```
+NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+ingress-nginx/ingress-nginx     4.4.0           1.5.1           Ingress controller for Kubernetes using NGINX a...
+```
 
-Before inizialising the backend, we have to create a .env file, inside the /backend folder, with our secret key: JWT_SECRET=example
-For security reasons, add this file to the .gitignore
+Now we can use `helm` to install the chart directly if we want. </br>
+Or we can use `helm` to grab the manifest and explore its content. </br>
+We can also add that manifest to our git repo if we are using a GitOps workflow to deploy it. </br>
 
-Now, we can run the backend: 
-1. cd backend
-2. nodemon server.js
+```
+CHART_VERSION="4.4.0"
+APP_VERSION="1.5.1"
 
-Now, backend is ready for receiving requests from the frontend, so we run it with:
-1. cd ../frontend
-2. npm start
+mkdir ./kubernetes/ingress/controller/nginx/manifests/
 
-## Task 2: Migrating to docker-compose, nginx and HTTPS setup##
+helm template ingress-nginx ingress-nginx \
+--repo https://kubernetes.github.io/ingress-nginx \
+--version ${CHART_VERSION} \
+--namespace ingress-nginx \
+> ./kubernetes/ingress/controller/nginx/manifests/nginx-ingress.${APP_VERSION}.yaml
+```
 
-### Development
+### Deploy the Ingress controller 
 
-First, we migrate the backend to a docker container:
-1. for testing just the node server (mongo running locally not in container), the uri should be:
-- docker build -t test .
-- docker run -d -p 3500:3500 test
-
-Update dbConnection.js with: 
-- const uri = "mongodb://host.docker.internal:27017/"; 
-
-2. Once we know node image is working, we migrate the database to a container, for so, instead of 
-   creating another dockerfile for the db, we will directly create it in the docker-compose 
-
-3. Then, we change the uri of the dbConnection.js to process.env ones, as these are defined in the .yml.
-
-4. Once full backend is tested and works, we have to integrate frontend. Before everything, we have to understand:
-
-In task 1, When you run npm start, React uses Vite, webpack-dev-server, or React Scripts, depending on your setup.
-This development server runs by default on localhost:3000 (unless it's taken).
-It's only used during development and is not included in your production Docker image
-
-When you do this in the Dockerfile:
-RUN npm run build
-It generates a static build of your React app in /build. Then, Nginx serves those files — and Nginx typically listens on port 80 inside the container, but we will use 3000
-
-5. Now we create the default.conf of nginx, forwarding requests to services, to its inside containers ips and add it too to the docker-compose
-add also mongo-express for visualizaing db: ADMIN; PASS
-
-### Production
-
-6. test it in production env by creating dockerfiles of production and adding other nginx inside frontend
-
-Lets build and push the image of our frontend and backend testing them with:
-- docker buildx build --platform linux/amd64,linux/arm64 -t your-dockerhub-username/your-image-name:tag . --push
-and then docker run
-
-### Kubernetes
-
-4. You have to set the image used in the web-app.yaml to your-dockerhub-username/your-image-name:tag and also
- set the env linked to your mongo-secret and mongo-config, where you will have to indicate your credentials in base64
- Also Delete the .env file, just in case it interferes with process.env
-
-5. Test everything with:
-- minikube start --driver=docker
-a. kubectl apply -f mongo-secret.yaml 
-b. kubectl apply -f mongo-config.yaml 
-c. kubectl apply -f mongo/
-d. kubectl apply -f node/ 
+```
+kubectl create namespace ingress-nginx
+kubectl apply -f ./kubernetes/ingress/controller/nginx/manifests/nginx-ingress.${APP_VERSION}.yaml
+```
 
 
+### Check the installation
+
+```
+kubectl -n ingress-nginx get pods
+```
+The traffic for our cluster will come in over the Ingress service </br>
+Note that we dont have load balancer capability in `kind` by default, so our `LoadBalancer` is pending:
+
+```
+kubectl -n ingress-nginx get svc
+NAME                                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.96.130.21    <pending>     80:31011/TCP,443:31772/TCP   26m
+ingress-nginx-controller-admission   ClusterIP      10.96.125.210   <none>        443/TCP                      26m
+```
+
+For testing purposes, we will simply setup `port-forward`ing </br>
+If you are running in the cloud, you will get a real IP address. </br>
+
+```
+sudo kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 443
+```
+
+We can reach our controller on [https://localhost/](https://localhost/) </br>
+
+It's important to understand that Ingress runs on two ports `80` and `443` </br>
+NGINX Ingress creates a fake certificate which is served for default `HTTPS` traffic on port `443`. </br>
+If you look in the browser you will notice the name of the certificate `Common Name (CN)	Kubernetes Ingress Controller Fake Certificate` 
+
+## Base Features (same for MERN App)
+
+Now before we take a look at the features we'll need two web applications that we can use as our test harness, `service-a` and `service-b` </br>
+
+In this demo, i have a deployment that runs a pod and a service that exposes the pod on port 80. </br>
+This is a typical scenario where you have a micrservice you want to expose publicly. </br>
+
+### Deploy Service A & B
+
+Will deploy these two apps to the default namespace:
+
+```
+kubectl apply -f ./kubernetes/ingress/controller/nginx/features/service-a.yaml
+kubectl apply -f ./kubernetes/ingress/controller/nginx/features/service-b.yaml
+```
 After changing smth: 
 - kubectl logs -l app=node-server
 - kubectl delete configmap --all y asi con el resto
 
-### /kubernetes/README.md for more information 
+Test our service : `kubectl port-forward svc/service-a 80`
 
-## TLS/HTTPS To Keycloak ##
-### Certf x.509 for HTTPS
-TODO: see how apply X.509 to digital firm
+Our services accept traffic on:
 
-openssl req -x509 -out localhostcert.pem -keyout localhostkey.pem \ 
-  -newkey rsa:2048 -nodes -sha256 \
-  -subj '/CN=localhost' -extensions EXT -config <( \
-   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+* `http://localhost/` which goes to the root `/`
+* `http://localhost/path-a.html` which goes to the root `/path-a.html`
+* `http://localhost/path-b.html` which goes to the root `/path-b.html`
+* `http://localhost/<any-other-path>.html` which goes to the root `404`
 
-when loading the secured page: https://localhost:8043, we will have to set our local certificate as trusted
+### Routing by Domain
 
-## Notes about Encryption and secure connections
+The most common way to route traffic with ingress is by domain:
 
-### 1WSSL (One-Way SSL) ###
-Means only the server is authenticated by the client (usually a browser or another service).
-This is what happens in most secure websites like https://google.com:
-1. The server shows its SSL/TLS certificate.
-2. The client (your browser) verifies it.
-3. If it's valid, a secure (encrypted) connection is established.
+* https://public.service-a.com/ --> Ingress --> k8s service --> http://service-a/ 
+* https://public.service-b.com/ --> Ingress --> k8s service --> http://service-b/ 
 
-Common usage: Public HTPPS websites
+To showcase this, let's deploy an ingress for service-a and service-b that routes by domain. </br>
 
-### 2WSSL (Two-Way SSL) or Mutual TLS ###
-Means both the server and the client authenticate each other.
+<i>Note: we don't own public domain `public.service-a.com` so we're using a `/etc/hosts` file</i>
 
-1. The server presents its certificate (just like in 1WSSL).
-2. The client also presents its own certificate.
-3. The server verifies that the client's certificate is valid.
-4. If both are okay, the secure connection is established.
+Example Ingress:
 
-Common usage: Private APIs, internal services
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: service-a
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: public.service-a.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-a
+            port:
+              number: 80
+```
 
-### 🔐 X.509 Certificates ###
-These are the standard for public key certificates used in many cryptographic systems, including SSL/TLS. So when we talk about 1WSSL or 2WSSL, we're generally referring to X.509 certificates. These certificates contain:
+<i>Note: we don't own public domain `public.my-services.com` so we're using a `/etc/hosts` file</i>
 
-* A public key
-* Information about the entity (like the server or client)
-* A digital signature that confirms the certificate's authenticity.
+```
+127.0.0.1       public.service-a.com
+127.0.0.1       public.service-b.com
+127.0.0.1       public.my-services.com
+```
 
-The certificate is issued by a Certificate Authority (CA), but you can also create self-signed certificates for testing purposes (like the ones I created earlier).
+Deploy our ingresses:
 
-### ✉️ What is S/MIME? ###
-It stands for Secure/Multipurpose Internet Mail Extensions. It’s a standard for sending encrypted and digitally signed emails using X.509 certificates.
+```
+kubectl apply -f ./kubernetes/ingress/controller/nginx/features/routing-by-domain.yaml
+```
 
-* Email Encryption: Encrypts the email content so only the intended recipient can read it. Prevents eavesdroppingª.
-* Digital Signature: Verifies that the email really came from the claimed sender. Ensures that the content hasn't been tamperedº with (message integrity).
+Now we can access service-a and service-b on:
 
-ª: Eavesdropping means someone secretly listens in on your communication 
-º: This means the message wasn't changed after it was sent.
+* https://public.service-a.com/
+* https://public.service-b.com/
 
-Each participant (sender and receiver) has an X.509 certificate with a public/private key pair.
-The public key is usually shared via email clients or directories.
 
-Example:
-You want to send Alice an encrypted email.
-Alice has an X.509 certificate with her public key.
-You use that key to encrypt the email.
-Only Alice, who has the matching private key, can decrypt it.
+### Routing by Path 
 
-It’s supported by most major email clients:
+Another popular routing strategy is to use a shared domain and route based on the HTTP path. For example: </br>
 
-Email Client	S/MIME Support
-Outlook	✅ Yes
-Apple Mail	✅ Yes
-Thunderbird	✅ Yes
-Gmail (web)	🚫 Not directly (needs 3rd party extension)
+* https://public.my-services.com/path-a --> Ingress --> k8s service --> http://service-a/path-a 
+* https://public.my-services.com/path-b --> Ingress --> k8s service --> http://service-b/path-b
+
+This way public path `/path-a` will hit our application on `/path-a` </br>
+
+Example Ingress: 
+
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: service-a
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: public.my-services.com
+    http:
+      paths:
+      - path: /path-a
+        pathType: Prefix
+        backend:
+          service:
+            name: service-a
+            port:
+              number: 80
+```
+Deploy our ingresses:
+
+```
+kubectl apply -f ./kubernetes/ingress/controller/nginx/features/routing-by-path.yaml
+```
+Now notice the following routing:
+
+* https://public.my-services.com/ --> Ingress (404)
+* https://public.my-services.com/path-a --> Ingress --> k8s service --> http://service-a/
+* https://public.my-services.com/path-b --> Ingress --> k8s service --> http://service-b/
+
+No matter what path you place on the front end, as long as the path matches `/path-a` or `/path-b` 
+it will be routed to the correct service on `/` </br>
+It's important to note that no extra paths or querystrings will NOT be passed to the upstream </br>
+
+We can see this by looking at our NGINX Ingress controller logs as the controller will write the path it sees as well as the upstream service where it sent the request
+```
+kubectl -n ingress-nginx logs -l app.kubernetes.io/instance=ingress-nginx
+```
+
+### App Root
+
+Sometimes applications have different root paths and don't simply serve traffic on `/` </br>
+For example, the base path may be `http://localhost/home` </br>
+
+To tell the Ingress controller that our application root path is `/home`, we can set the annotation `nginx.ingress.kubernetes.io/app-root: /home` </br>
+
+This means the controller will be aware that all traffic that matches `path-a` should go to `/home` on service-a. </br>
+
+### URL Rewrite 
+
+We saw earlier when we routed by path, that we could pass `/path-a` to service-a and `/path-b` to service-b. </br>
+However, the traffic would always go to `/` so we lost any trailing URL, parameters and querystring. </br>
+Not very useful. </br>
+
+To allow the Ingress controller to pass paths to the upstream you need to look into [Rewrite Configuration](https://kubernetes.github.io/ingress-nginx/examples/rewrite/)
+
+Example Ingress:
+
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: service-a
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: public.my-services.com
+    http:
+      paths:
+      - path: /path-a(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: service-a
+            port:
+              number: 80
+```
+Deploy our ingresses:
+
+```
+kubectl apply -f ./kubernetes/ingress/controller/nginx/features/routing-by-path-rewrite.yaml
+```
+Now notice the following routing:
+
+* https://public.my-services.com/ --> Ingress (404)
+* https://public.my-services.com/path-a* --> Ingress --> k8s service --> http://service-a/*
+* https://public.my-services.com/path-b* --> Ingress --> k8s service --> http://service-b/*
+
+```
+kubectl -n ingress-nginx logs -l app.kubernetes.io/instance=ingress-nginx
+```
+It's important to study the logs of the Ingress Controller to learn what path it saw, where it routed to
+
+```
+127.0.0.1 - - [13/Nov/2022:02:17:47 +0000] "GET /path-a/path.html HTTP/2.0" 404 19 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36" 485 0.000 [default-service-a-80] [] 10.244.0.8:80 19 0.000 404 206ed4b88b712564fc073c3adb845dff
+```
+
+In the above case, the controller saw ` /path-a/path.html` , routed to service-a and we can see what our service-a saw, by looking at its logs:
+
+```
+kubectl logs -l app=service-a
+10.244.0.7 - - [13/Nov/2022:02:28:36 +0000] "GET /path-a.html HTTP/1.1" 200 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
+```
+
+
+### SSL terminating & passthrough
+
+As we noticed by logs, its default for the Ingress controller to offload SSL. </br>
+We can see this because when it routes to upstreams, it routes to our service on port 80 </br>
+Ingress offloads the TLS connection and creates a new connection with its upstream. </br>
+
+This is a common approach to offload TLS on the edge as internal traffic is generally unencrypted in private 
+networks especially in large microservice environments where security is tightened in other manners so TLS is not needed all the way through. </br>
+
+We can enable SSL pass through with the annotation: `nginx.ingress.kubernetes.io/ssl-passthrough`. </br>
+
+SSL Passthrough is disabled by default and requires starting the controller with the --enable-ssl-passthrough flag. </br>
+
+### IP Whitelist
+
+We can add a layer of protection to our services that are exposed by an ingress. </br>
+One popular way is IP whitelisting. </br>
+
+This can be done with a [whitelist source range annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#whitelist-source-range) for example: </br>
+
+`nginx.ingress.kubernetes.io/whitelist-source-range: <ip,ip,ip>`</br>
+
+You can set this globally if you want using the [Customization ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#whitelist-source-range). </br>
+We'll take a look at this customization in a bit. </br>
+
+### Authentication 
+
+You can add a layer of protection to services exposed by ingress by several [Authentication methods](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#authentication). </br>
+
+A simple example is basic Authentication where the client supplied a `username\password` to access our service. </br>
+
+This is controlled by annotations:
+
+* `nginx.ingress.kubernetes.io/auth-type: basic`
+* `nginx.ingress.kubernetes.io/auth-secret: server-a-secret`
+* `nginx.ingress.kubernetes.io/auth-secret-type: auth-file`
+
+Create a username and password:
+
+```
+apk add apache2-utils
+
+htpasswd -c auth service-a-user
+
+kubectl create secret generic server-a-secret --from-file=auth
+```
+
+Deploy our ingresses:
+
+```
+kubectl apply -f ./kubernetes/ingress/controller/nginx/features/basic-auth.yaml
+```
+
+### Server snippet 
+
+Every ingress is technically an NGINX server block with a NGINX proxy pass. </br>
+We can even customise this server block with a [Server Snippet annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-snippet)
+
+
+### Customization
+
+As mentioned before, the NGINX Ingress controller can be customized quite heavily with the [ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/)
+
+We can customize log format to JSON as well for example:
+
+```
+log-format-escape-json: "true"
+  log-format-upstream: '{"time":"$time_iso8601","remote_addr":"$remote_addr","proxy_protocol_addr":"$proxy_protocol_addr","proxy_protocol_port":"$proxy_protocol_port","x_forward_for":"$proxy_add_x_forwarded_for","remote_user":"$remote_user","host":"$host","request_method":"$request_method","request_uri":"$request_uri","server_protocol":"$server_protocol","status":$status,"request_time":$request_time,"request_length":$request_length,"bytes_sent":$bytes_sent,"upstream_name":"$proxy_upstream_name","upstream_addr":"$upstream_addr","upstream_uri":"$uri","upstream_response_length":$upstream_response_length,"upstream_response_time":$upstream_response_time,"upstream_status":$upstream_status,"http_referrer":"$http_referer","http_user_agent":"$http_user_agent","http_cookie":"$http_cookie","http_device_id":"$http_x_device_id","http_customer_id":"$http_x_customer_id"}'
+
+```
+
+Apply the changes and restart Ingress:
+
+```
+kubectl apply -f ./kubernetes/ingress/controller/nginx/manifests/nginx-ingress.${APP_VERSION}.yaml
+```
+
+kubectl -n ingress-nginx logs -l app.kubernetes.io/instance=ingress-nginx
