@@ -3,20 +3,20 @@ kind: Deployment
 metadata:
   name: react-deployment
   labels:
-    app: react-server
+    app: {{.Values.frontendApp}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: react-server
+      app: {{.Values.frontendApp}}
   template:
     metadata:
       labels:
-        app: react-server
+        app: {{.Values.frontendApp}}
     spec:
       containers:
       - name: react-container
-        image: oscargomezgonzalezz/react:1.0.7
+        image: "{{.Values.reactImage.name}}:{{.Values.reactImage.tag}}"
         ports:
         - containerPort: 80
         resources:
@@ -35,9 +35,9 @@ metadata:
   name: react-service
 spec:
   selector:
-    app: react-server
+    app: {{.Values.frontendApp}}
   ports:
     - protocol: TCP
       port: 80 #accessible by other services within the same cluster
       targetPort: 80 #any traffic received by the Service on "port" will be forwarded to target port, in this case
-                        # its 3500 as our server is listening in that port
+                        # its 80 as our server is listening in that port

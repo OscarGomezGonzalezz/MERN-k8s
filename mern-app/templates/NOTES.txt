@@ -1,0 +1,26 @@
+🎉 Your MERN stack app has been successfully initialized!
+
+🔗 Access Information
+----------------------
+
+📡 Ingress Controller:
+  - Make sure you have an NGINX ingress controller running.
+  - In case you do not, check the README
+  - If deployed locally (e.g., via minikube), run:
+
+  sudo kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 443
+
+
+🛠️ Useful Commands
+----------------------
+
+📦 To check the status of your release:
+  helm status {{ .Release.Name }} --namespace {{ .Release.Namespace }}
+
+📄 To see all deployed Kubernetes resources:
+  kubectl get all --namespace {{ .Release.Namespace }}
+
+🗑️ To uninstall the release:
+  helm uninstall {{ .Release.Name }} --namespace {{ .Release.Namespace }}
+
+Have fun with your MERN app! 🚀

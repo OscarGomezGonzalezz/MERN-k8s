@@ -3,20 +3,20 @@ kind: Deployment
 metadata:
   name: node-deployment
   labels:
-    app: node-server
+    app: {{ .Values.appName }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: node-server
+      app: {{ .Values.appName }}
   template:
     metadata:
       labels:
-        app: node-server
+        app: {{ .Values.appName }}
     spec:
       containers:
       - name: node-container
-        image: oscargomezgonzalezz/node:sinApi
+        image: "{{.Values.nodeImage.name}}:{{.Values.nodeImage.tag}}"
         ports:
         - containerPort: 3500
         env:
@@ -54,7 +54,7 @@ metadata:
   name: node-service
 spec:
   selector:
-    app: node-server
+    app: {{ .Values.appName }}
   ports:
     - protocol: TCP
       port: 3500 #accessible by other services within the same cluster

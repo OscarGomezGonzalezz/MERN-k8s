@@ -1,6 +1,6 @@
 # Introduction to NGINX Ingress Controller
 
-## (BASED ON DEVOPSGUY)
+## (BASED ON DEVOPSGUY): https://youtu.be/72zYxSxifpM?si=mrgufl1GRRPnfRhy
 ![Kubernetes Ingress Architecture](./assets/Architecture.jpg)
 ## NGINX Ingress Controller 
 
@@ -10,6 +10,9 @@ You can find the [Kubernetes NGINX documentation here](https://kubernetes.github
 First thing we do is check the compatibility matrix to ensure we are deploying a compatible version of NGINX Ingress on our Kubernetes cluster </br>
 
 The Documentation also has a link to the [GitHub Repo](https://github.com/kubernetes/ingress-nginx/) which has a compatibility matrix </br>
+
+It is needed to run docker engine, as minikube is a cluster created over Docker
+* minikube start
 
 ### Get the installation YAML
 
@@ -79,6 +82,8 @@ sudo kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 443
 
 We can reach our controller on [https://localhost/](https://localhost/) </br>
 
+As there is no backend connected, nginx will report a 404 error
+
 It's important to understand that Ingress runs on two ports `80` and `443` </br>
 NGINX Ingress creates a fake certificate which is served for default `HTTPS` traffic on port `443`. </br>
 If you look in the browser you will notice the name of the certificate `Common Name (CN)	Kubernetes Ingress Controller Fake Certificate` 
@@ -95,14 +100,11 @@ This is a typical scenario where you have a micrservice you want to expose publi
 Will deploy these two apps to the default namespace:
 
 ```
-kubectl apply -f ./kubernetes/ingress/controller/nginx/features/service-a.yaml
-kubectl apply -f ./kubernetes/ingress/controller/nginx/features/service-b.yaml
+kubectl apply -f ./kubernetes/features/base/service-a.yaml
+kubectl apply -f ./kubernetes/features/base/service-b.yaml
 ```
-After changing smth: 
-- kubectl logs -l app=node-server
-- kubectl delete configmap --all y asi con el resto
 
-Test our service : `kubectl port-forward svc/service-a 80`
+Test our service(this exposes directly the service, not throughout nginx) : `sudo kubectl port-forward svc/service-a 80`
 
 Our services accept traffic on:
 
@@ -120,7 +122,6 @@ The most common way to route traffic with ingress is by domain:
 
 To showcase this, let's deploy an ingress for service-a and service-b that routes by domain. </br>
 
-<i>Note: we don't own public domain `public.service-a.com` so we're using a `/etc/hosts` file</i>
 
 Example Ingress:
 
@@ -155,8 +156,10 @@ spec:
 Deploy our ingresses:
 
 ```
-kubectl apply -f ./kubernetes/ingress/controller/nginx/features/routing-by-domain.yaml
+kubectl apply -f ./kubernetes/features/base/routing-by-domain.yaml
 ```
+
+sudo kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 443
 
 Now we can access service-a and service-b on:
 
@@ -283,82 +286,12 @@ kubectl logs -l app=service-a
 10.244.0.7 - - [13/Nov/2022:02:28:36 +0000] "GET /path-a.html HTTP/1.1" 200 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
 ```
 
+## Enabling helm.
 
-### SSL terminating & passthrough
+* helm create <name>
 
-As we noticed by logs, its default for the Ingress controller to offload SSL. </br>
-We can see this because when it routes to upstreams, it routes to our service on port 80 </br>
-Ingress offloads the TLS connection and creates a new connection with its upstream. </br>
+So that this line works, there must be nothing, which is gonna be created with helm, running
+* helm install <name-release> <name> (optional if we dont want to create them in default namespace)--namespace <namespace>
 
-This is a common approach to offload TLS on the edge as internal traffic is generally unencrypted in private 
-networks especially in large microservice environments where security is tightened in other manners so TLS is not needed all the way through. </br>
-
-We can enable SSL pass through with the annotation: `nginx.ingress.kubernetes.io/ssl-passthrough`. </br>
-
-SSL Passthrough is disabled by default and requires starting the controller with the --enable-ssl-passthrough flag. </br>
-
-### IP Whitelist
-
-We can add a layer of protection to our services that are exposed by an ingress. </br>
-One popular way is IP whitelisting. </br>
-
-This can be done with a [whitelist source range annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#whitelist-source-range) for example: </br>
-
-`nginx.ingress.kubernetes.io/whitelist-source-range: <ip,ip,ip>`</br>
-
-You can set this globally if you want using the [Customization ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#whitelist-source-range). </br>
-We'll take a look at this customization in a bit. </br>
-
-### Authentication 
-
-You can add a layer of protection to services exposed by ingress by several [Authentication methods](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#authentication). </br>
-
-A simple example is basic Authentication where the client supplied a `username\password` to access our service. </br>
-
-This is controlled by annotations:
-
-* `nginx.ingress.kubernetes.io/auth-type: basic`
-* `nginx.ingress.kubernetes.io/auth-secret: server-a-secret`
-* `nginx.ingress.kubernetes.io/auth-secret-type: auth-file`
-
-Create a username and password:
-
-```
-apk add apache2-utils
-
-htpasswd -c auth service-a-user
-
-kubectl create secret generic server-a-secret --from-file=auth
-```
-
-Deploy our ingresses:
-
-```
-kubectl apply -f ./kubernetes/ingress/controller/nginx/features/basic-auth.yaml
-```
-
-### Server snippet 
-
-Every ingress is technically an NGINX server block with a NGINX proxy pass. </br>
-We can even customise this server block with a [Server Snippet annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-snippet)
-
-
-### Customization
-
-As mentioned before, the NGINX Ingress controller can be customized quite heavily with the [ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/)
-
-We can customize log format to JSON as well for example:
-
-```
-log-format-escape-json: "true"
-  log-format-upstream: '{"time":"$time_iso8601","remote_addr":"$remote_addr","proxy_protocol_addr":"$proxy_protocol_addr","proxy_protocol_port":"$proxy_protocol_port","x_forward_for":"$proxy_add_x_forwarded_for","remote_user":"$remote_user","host":"$host","request_method":"$request_method","request_uri":"$request_uri","server_protocol":"$server_protocol","status":$status,"request_time":$request_time,"request_length":$request_length,"bytes_sent":$bytes_sent,"upstream_name":"$proxy_upstream_name","upstream_addr":"$upstream_addr","upstream_uri":"$uri","upstream_response_length":$upstream_response_length,"upstream_response_time":$upstream_response_time,"upstream_status":$upstream_status,"http_referrer":"$http_referer","http_user_agent":"$http_user_agent","http_cookie":"$http_cookie","http_device_id":"$http_x_device_id","http_customer_id":"$http_x_customer_id"}'
-
-```
-
-Apply the changes and restart Ingress:
-
-```
-kubectl apply -f ./kubernetes/ingress/controller/nginx/manifests/nginx-ingress.${APP_VERSION}.yaml
-```
-
-kubectl -n ingress-nginx logs -l app.kubernetes.io/instance=ingress-nginx
+When we change something we use upgrade, and besides if we want to use defined values we could do the following:
+* helm upgrade <name-release> <name> --values <name>/values.yaml
