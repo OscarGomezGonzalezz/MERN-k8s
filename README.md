@@ -1,8 +1,9 @@
 # Introduction to NGINX Ingress Controller
 
-## (BASED ON DEVOPSGUY): https://youtu.be/72zYxSxifpM?si=mrgufl1GRRPnfRhy
 ![Kubernetes Ingress Architecture](./assets/Architecture.jpg)
 ## NGINX Ingress Controller 
+
+**Really helpful video: https://youtu.be/72zYxSxifpM?si=mrgufl1GRRPnfRhy**
 
 We'll start with the documentation as always </br>
 You can find the [Kubernetes NGINX documentation here](https://kubernetes.github.io/ingress-nginx/) </br>
@@ -295,3 +296,21 @@ So that this line works, there must be nothing, which is gonna be created with h
 
 When we change something we use upgrade, and besides if we want to use defined values we could do the following:
 * helm upgrade <name-release> <name> --values <name>/values.yaml
+
+## Enabling CI/CD Pipeline.
+
+Helpful video: https://youtu.be/a5qkPEod9ng?si=QT74PcBAnWdadVls
+
+This automates the building, testing and deployment of our application, so that for example if we are working just with the node server and we want to integrate the changes within the whole project, we dont need to do all these steps (buildinf and testing)manually, as we have defined a pipeline in the .github/workflows folder
+
+I have used Github Actions, by creating the main.yaml, defining jobs, steps within these ones and so on...
+
+As I am pushing the used images to a private repo, it will be needed to login into docker, and for this, it will be mandatory to provide docker credentials, given in github settings/variables and secrets/actions/repository secrets 
+
+Besides, it is needed to provide credentials also when pulling the created images in node.yaml and react.yaml, so it is needed to create a kubernetes secrets which wraps these ones
+```
+kubectl create secret docker-registry dockerhub-secret \            
+  --docker-username={your-docker-hub-username} \
+  --docker-password={your-docker-hub-password} \
+  --docker-email={your-docker-hub-gmail}
+```
