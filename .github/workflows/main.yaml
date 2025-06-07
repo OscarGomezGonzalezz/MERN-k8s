@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +28,7 @@ jobs:
           npm run build
   docker:
     needs: test
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
