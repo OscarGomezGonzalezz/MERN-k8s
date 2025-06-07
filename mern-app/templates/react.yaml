@@ -14,9 +14,12 @@ spec:
       labels:
         app: {{.Values.frontendApp}}
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
       - name: react-container
         image: "{{.Values.reactImage.name}}:{{.Values.reactImage.tag}}"
+        
         ports:
         - containerPort: 80
         resources:

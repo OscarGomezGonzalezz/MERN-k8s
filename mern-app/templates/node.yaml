@@ -14,9 +14,12 @@ spec:
       labels:
         app: {{ .Values.appName }}
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
       - name: node-container
         image: "{{.Values.nodeImage.name}}:{{.Values.nodeImage.tag}}"
+        
         ports:
         - containerPort: 3500
         env:
