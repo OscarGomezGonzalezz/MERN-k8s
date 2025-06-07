@@ -1,4 +1,4 @@
-const baseUri = 'http://node-service:3500/tasks';
+// const baseUri = 'http://node-service:3500/tasks';
 
 export const getTasks = async (token) => {
   try {

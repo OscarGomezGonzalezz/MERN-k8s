@@ -11,7 +11,7 @@ function TodoApp() {
   // Cargar los TODOs cuando se monta el componente
   useEffect(() => {
     fetchTodos();
-  }, []);
+  });
 
   const fetchTodos = async () => {
     try {
