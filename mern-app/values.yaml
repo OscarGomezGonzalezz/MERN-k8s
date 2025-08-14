@@ -2,11 +2,9 @@ appName: node-server
 frontendApp: react-server
 
 nodeImage:
-  name: oscargomezgonzalezz/private-devops
-  tag: backend
+  name: oscargomezgonzalezz/node
+  tag: sinApi
 
 reactImage:
-  name: oscargomezgonzalezz/private-devops
-  tag: frontend
-
-
+  name: oscargomezgonzalezz/react
+  tag: 1.0.7

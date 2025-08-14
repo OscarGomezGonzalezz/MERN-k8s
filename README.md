@@ -1,11 +1,28 @@
 # Introduction to NGINX Ingress Controller
 
 ![Kubernetes Ingress Architecture](./assets/Architecture.jpg)
+
+## Deploying with Helm
+
+#This command is just for creating the chart:
+```
+helm create <name>
+```
+
+So that this line works, there must be nothing running, which is gonna be created with helm:
+```
+helm install <name-release> <route of the Chart.yaml> (optional if we dont want to create them in default namespace)--namespace <namespace>
+```
+
+When we change something we use upgrade, and besides if we want to use defined values we could do the following:
+```
+helm upgrade <name-release> <route of the Chart.yaml> --values <name>/values.yaml
+```
+
 ## NGINX Ingress Controller 
 
 **Really helpful video: https://youtu.be/72zYxSxifpM?si=mrgufl1GRRPnfRhy**
 
-We'll start with the documentation as always </br>
 You can find the [Kubernetes NGINX documentation here](https://kubernetes.github.io/ingress-nginx/) </br>
 
 First thing we do is check the compatibility matrix to ensure we are deploying a compatible version of NGINX Ingress on our Kubernetes cluster </br>
@@ -40,7 +57,7 @@ We can also add that manifest to our git repo if we are using a GitOps workflow 
 
 ```
 CHART_VERSION="4.4.0"
-APP_VERSION="1.5.1"
+APP_VERSION="1.12.0"
 
 mkdir ./kubernetes/ingress/controller/nginx/manifests/
 
@@ -55,7 +72,7 @@ helm template ingress-nginx ingress-nginx \
 
 ```
 kubectl create namespace ingress-nginx
-kubectl apply -f ./kubernetes/ingress/controller/nginx/manifests/nginx-ingress.${APP_VERSION}.yaml
+kubectl apply -f ./kubernetes/manifests/nginx-ingress.${APP_VERSION}.yaml
 ```
 
 
@@ -203,7 +220,7 @@ spec:
 Deploy our ingresses:
 
 ```
-kubectl apply -f ./kubernetes/ingress/controller/nginx/features/routing-by-path.yaml
+kubectl apply -f ./kubernetes/features/routing-by-path.yaml
 ```
 Now notice the following routing:
 
@@ -263,8 +280,11 @@ spec:
 Deploy our ingresses:
 
 ```
-kubectl apply -f ./kubernetes/ingress/controller/nginx/features/routing-by-path-rewrite.yaml
+kubectl apply -f ./kubernetes/features/routing-by-path-rewrite.yaml
 ```
+
+sudo kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 443
+
 Now notice the following routing:
 
 * https://public.my-services.com/ --> Ingress (404)
@@ -287,16 +307,6 @@ kubectl logs -l app=service-a
 10.244.0.7 - - [13/Nov/2022:02:28:36 +0000] "GET /path-a.html HTTP/1.1" 200 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
 ```
 
-## Enabling helm.
-
-* helm create <name>
-
-So that this line works, there must be nothing, which is gonna be created with helm, running
-* helm install <name-release> <name> (optional if we dont want to create them in default namespace)--namespace <namespace>
-
-When we change something we use upgrade, and besides if we want to use defined values we could do the following:
-* helm upgrade <name-release> <name> --values <name>/values.yaml
-
 ## Enabling CI/CD Pipeline.
 
 Helpful video: https://youtu.be/a5qkPEod9ng?si=QT74PcBAnWdadVls
@@ -314,3 +324,5 @@ kubectl create secret docker-registry dockerhub-secret \
   --docker-password={your-docker-hub-password} \
   --docker-email={your-docker-hub-gmail}
 ```
+
+TODO: IMPLEMENT CD TOO BY DEPLOYING TO A CLOUD PROVIDER, AS CURRENTLY NOT POSSIBLE BECAUSE OF BEING RUNNING LOCALLY (MINKUBE)
