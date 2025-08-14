@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./dbConnection");
 require("dotenv").config();//Load the .env file
+const swStats = require("swagger-stats"); //THIS IS NECESSARY FOR PROMETHEUS
+
 
 
 const authRoutes = require("./routes/authRoutes");
@@ -20,6 +22,9 @@ connectDB().then(client => {
     ));
     app.use(express.json());
 
+    //this creates a route /swagger-stats/metrics where exposes all the metrics required by Prometheus
+    app.use(swStats.getMiddleware());
+    
     app.use("/auth", authRoutes);
     app.use("/tasks", todoRoutes);
     app.get("/", (req, res) => {

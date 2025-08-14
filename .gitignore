@@ -1,2 +1,78 @@
+# =======================
+# Node.js
+# =======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+
+# Env files
 .env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+logs/*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage / testing
+coverage/
+.nyc_output/
+
+# =======================
+# Docker
+# =======================
+# Docker build cache
+**/docker-compose.override.yml
+**/docker-compose.override.yaml
+.docker/
 .dockerignore
+docker-compose*.log
+
+# =======================
+# Helm
+# =======================
+# Helm release and chart lock files
+charts/
+Chart.lock
+values.override.yaml
+values.override.yml
+
+# Ignore rendered templates output (helm template)
+rendered-templates/
+*.tgz
+
+# =======================
+# Kubernetes
+# =======================
+# Kubectl local configs
+.kube/
+*.kubeconfig
+kubeconfig*
+# Generated manifests (if stored locally)
+manifests-generated/
+*.generated.yaml
+*.generated.yml
+
+# =======================
+# Miscellaneous
+# =======================
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
+*.bak
+Thumbs.db
+
+# Ignore OS-specific files
+ehthumbs.db
+Icon?
