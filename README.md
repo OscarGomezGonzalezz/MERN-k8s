@@ -4,6 +4,17 @@
 
 ## Deploying with Helm
 
+First, you will need to create an image from the app/backend, and push it to your own repo, cause mine is a private one.<br>
+In case you add your image into a private repo, you will need to create a docker secret:
+````
+kubectl create secret docker-registry dockerhub-secret \
+  --docker-username=<> \
+  --docker-password=<> \
+  --docker-email=<> \
+  --namespace=<>
+````
+image 
+
 #This command is just for creating the chart:
 ```
 helm create <name>

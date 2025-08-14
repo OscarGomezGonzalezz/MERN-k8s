@@ -2,8 +2,8 @@ appName: node-server
 frontendApp: react-server
 
 nodeImage:
-  name: oscargomezgonzalezz/node
-  tag: sinApi
+  name: oscargomezgonzalezz/private-devops
+  tag: node
 
 reactImage:
   name: oscargomezgonzalezz/react

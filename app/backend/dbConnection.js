@@ -4,8 +4,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 // MongoDB ATLAS URI
 //const uri = "mongodb+srv://user:password@clusterxxxxxxxxxx/?retryWrites=true&w=majority&appName=xxxxx";
 
-//URI al servicio de mongo en local
-
+//These variables are provided by the k8s node deployment
 const uri = process.env.MONGO_URL;
 const mongoUser = process.env.MONGO_USER;
 const mongoPassword = process.env.MONGO_PASSWORD;

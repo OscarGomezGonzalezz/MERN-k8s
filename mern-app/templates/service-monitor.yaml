@@ -10,7 +10,7 @@ spec:
   endpoints:
     - interval: 30s
       port: node # "" with the port ""
-      path: /metrics
+      path: /swagger-stats/metrics
   selector:
     matchLabels:
-      app: service-api # "" with the metadata label app ""
+      app: {{ .Values.appName }} # "" with the metadata label app ""
