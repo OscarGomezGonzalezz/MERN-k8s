@@ -307,7 +307,7 @@ kubectl logs -l app=service-a
 10.244.0.7 - - [13/Nov/2022:02:28:36 +0000] "GET /path-a.html HTTP/1.1" 200 28 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
 ```
 
-## Enabling CI/CD Pipeline.
+## Enabling CI Pipeline.
 
 Helpful video: https://youtu.be/a5qkPEod9ng?si=QT74PcBAnWdadVls
 
@@ -326,3 +326,25 @@ kubectl create secret docker-registry dockerhub-secret \
 ```
 
 TODO: IMPLEMENT CD TOO BY DEPLOYING TO A CLOUD PROVIDER, AS CURRENTLY NOT POSSIBLE BECAUSE OF BEING RUNNING LOCALLY (MINKUBE)
+
+## Adding Observability with Prometheus
+[Check this Good source](https://youtu.be/6xmWr7p5TE0?si=aPtGtVW7tHa6neKj)
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+helm repo update
+
+helm install prometheus prometheus-community/kube-prometheus-stack
+```
+We will save the config file of prometheus this way:
+````
+helm show values prometheus-community/kube-prometheus-stack > values_prometheus.yaml
+````
+So, for future changes into the prometheus config, we will do:
+````
+helm upgrade prometheus prometheus-community/kube-prometheus-stack -f values_prometheus.yaml
+````
+
+But instead of changing directly the config of prometheus, it is better to use Custom Resource Definitions(CRD).
+I will create services monitors, which define a set of targets for prometheus to monitor and scrape. <br>
+So, as we want to monitorize the backend, we will have to create a service monitor for this one.

@@ -19,7 +19,6 @@ spec:
       containers:
       - name: node-container
         image: "{{.Values.nodeImage.name}}:{{.Values.nodeImage.tag}}"
-        
         ports:
         - containerPort: 3500
         env:
@@ -55,11 +54,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: node-service
+  labels:
+    job: node-api
+    app: service-api
 spec:
   selector:
     app: {{ .Values.appName }}
   ports:
-    - protocol: TCP
+    - name: node
+      protocol: TCP
       port: 3500 #accessible by other services within the same cluster
       targetPort: 3500 #any traffic received by the Service on "port" will be forwarded to target port, in this case
                         # its 3500 as our server is listening in that port

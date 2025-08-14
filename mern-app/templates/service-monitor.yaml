@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-service-monitor
+  labels:
+    release: prometheus #This is crucial so that prometheus find service monitors
+    app: prometheus
+spec:
+  jobLabel: job # This must match with the metadata label job frmo the node service
+  endpoints:
+    - interval: 30s
+      port: node # "" with the port ""
+      path: /metrics
+  selector:
+    matchLabels:
+      app: service-api # "" with the metadata label app ""
